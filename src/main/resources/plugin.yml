@@ -35,10 +35,6 @@ commands:
     description: moderador.
     usage: /<command>
     aliases: [v, van]
-  team:
-    description: Team.
-    usage: /<command>
-    aliases: [equipo, t, e]
   teleport:
     description: Teleport.
     usage: /<command>

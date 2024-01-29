@@ -20,17 +20,12 @@ public class InvincibilityTimer {
                         BGChat.printTimeChat("La invencibilidad termina en " +
                                 LCCHG.TIME(LCCHG.FINAL_COUNTDOWN) +
                                 ".");
-                    } else if (LCCHG.FINAL_COUNTDOWN.intValue() < 10) {
-                        BGChat.printTimeChat("La invencibilidad termina en " +
-                                LCCHG.TIME(LCCHG.FINAL_COUNTDOWN) +
-                                ".");
                         for (Player pl : LCCHG.getGamers())
                             pl.playSound(pl.getLocation(), Sound.NOTE_PLING, 2.0F, 2.0F);
                     }
                     LCCHG.FINAL_COUNTDOWN = Integer.valueOf(LCCHG.FINAL_COUNTDOWN.intValue() - 1);
                 } else {
-                    BGChat.printTimeChat("");
-                    BGChat.printTimeChat("La invencibilidad ha terminado.");
+                    BGChat.printTimeChat("&cLa invencibilidad ha terminado.");
                     LCCHG.log.info("Game phase: 3 - Fighting");
                     for (Player pl : LCCHG.getGamers())
                         pl.playSound(pl.getLocation(), Sound.ANVIL_LAND, 1.0F, 2.0F);

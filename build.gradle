@@ -24,7 +24,7 @@ repositories {
 dependencies {
     compileOnly "org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT"
     compileOnly 'me.clip:placeholderapi:2.11.5'
-    implementation 'com.github.MineLC:LCCore:a084fab8fa'
+    implementation 'com.github.MineLC:LCCore:a8693aa664'
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
     implementation 'org.apache.commons:commons-lang3:3.0'
 

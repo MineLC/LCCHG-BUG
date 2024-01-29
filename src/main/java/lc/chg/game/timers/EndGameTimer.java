@@ -17,8 +17,8 @@ public class EndGameTimer {
                 World w = Bukkit.getWorlds().get(0);
                 w.setDifficulty(Difficulty.HARD);
                 w.strikeLightning(LCCHG.spawn.clone().add(0.0D, 50.0D, 0.0D));
-                BGChat.printInfoChat(ChatColor.RED + ""+ChatColor.BOLD + "Batalla Final");
-                BGChat.printInfoChat("Teletransportando al spawn.");
+                BGChat.printInfoChat(ChatColor.RED + ""+ChatColor.BOLD + "¡Batalla Final!");
+                BGChat.printInfoChat("&bTeletransportando al spawn.");
                 LCCHG.log.info("Game phase: 4 - Final");
                 BGFBattle.teleportGamers(LCCHG.getGamers());
             }

@@ -2,10 +2,12 @@ package lc.chg.game.utils;
 
 import lc.chg.LCCHG;
 import lc.chg.configuration.LCConfig;
+import lc.chg.configuration.Translation;
 import lc.chg.game.BGKit;
 import lc.chg.game.litesteners.habilidades.Habilidades;
 import lc.core.entidades.Jugador;
 import lc.core.utilidades.IconMenu;
+import lc.core.utilidades.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 
+import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +34,7 @@ public class BGChat {
     }
 
     public static void printInfoChat(String text) {
-        broadcast(ChatColor.DARK_GREEN + text);
+        broadcast(Translation.getPrefix()+ChatColor.DARK_GREEN + text);
     }
 
     public static void printDeathChat(String text) {
@@ -39,7 +42,7 @@ public class BGChat {
     }
 
     public static void printTimeChat(String text) {
-        broadcast(ChatColor.GREEN + text);
+        broadcast(Util.color(Translation.getPrefix()+ChatColor.GREEN + text));
     }
 
     public static void printPlayerChat(Player player, String text) {
@@ -48,7 +51,7 @@ public class BGChat {
 
     private static void broadcast(String msg) {
         for (Player Online : Bukkit.getOnlinePlayers())
-            Online.sendMessage(msg);
+            Online.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
     }
 
     public static void printHelpChat(Player player) {

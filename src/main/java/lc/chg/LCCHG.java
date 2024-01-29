@@ -15,10 +15,12 @@ import lc.chg.game.timers.GameTimer;
 import lc.chg.game.timers.InvincibilityTimer;
 import lc.chg.game.timers.PreGameTimer;
 import lc.chg.game.utils.BGChat;
+import lc.chg.game.utils.BGKick;
 import lc.core.entidades.Jugador;
 import lc.core.entidades.database.CHGInfoQuery;
 import lc.core.entidades.database.LCoinsQuery;
 import lc.core.entidades.database.VipPointsQuery;
+import lc.core.entidades.minijuegos.CHGRank;
 import org.bukkit.*;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -98,7 +100,7 @@ public final class LCCHG extends JavaPlugin {
 
     public static LinkedList<Player> gamers = new LinkedList<>();
 
-    public static String ganador = "nadie";
+    public static String ganador = "Nadie";
 
     public static SplittableRandom random = new SplittableRandom();
 
@@ -151,14 +153,15 @@ public final class LCCHG extends JavaPlugin {
         log.info("Deleting old world.");
         Bukkit.getServer().unloadWorld("world", false);
         deleteDir(new File("world"));
+
         File[] maps = getDataFolder().listFiles();
+        List<File> l = new ArrayList<>();
+
         assert maps != null;
-        File sf = maps[random.nextInt(maps.length)];
-        if(!sf.isDirectory()){
-            log.info("Hubo un error y hay que reiniciar.");
-            Bukkit.shutdown();
-            return;
+        for(File f : maps){
+            if(f.isDirectory()) l.add(f);
         }
+        File sf = l.get(random.nextInt(l.size()));
         mapa = sf.getName();
         log.info("Copying saved world. (" + mapa + ")");
         try {
@@ -226,11 +229,6 @@ public final class LCCHG extends JavaPlugin {
         } else {
             console.sendMessage(ChatColor.RED + "getCommand fbattle returns null");
         }
-        if (getCommand("team") != null) {
-            getCommand("team").setExecutor((CommandExecutor)new BGPlayer());
-        } else {
-            console.sendMessage(ChatColor.RED + "getCommand team returns null");
-        }
         if (getCommand("gamemaker") != null) {
             getCommand("gamemaker").setExecutor((CommandExecutor)new BGPlayer());
         } else {
@@ -293,11 +291,12 @@ public final class LCCHG extends JavaPlugin {
         Bukkit.getServer().dispatchCommand((CommandSender)Bukkit.getConsoleSender(), command);
         frezee = new ArrayList<>();
         new BGKit();
+        new PreGameTimer();
     }
 
     public void onDisable() {
         for (Player p : Bukkit.getOnlinePlayers())
-            p.kickPlayer(ChatColor.GOLD + ganador + " es el ganador del juego!");
+            BGKick.kick(p, ganador);
         Bukkit.getServer().getScheduler().cancelAllTasks();
     }
 
@@ -358,7 +357,7 @@ public final class LCCHG extends JavaPlugin {
 
     public static void sendVipMessage(Jugador jug, int x) {
         jug.getBukkitInstance().playSound(jug.getBukkitInstance().getLocation(), Sound.NOTE_PLING, 1.0F, 1.3F);
-        jug.getBukkitInstance().sendMessage(ChatColor.GOLD + "+" + x + " Vip Points");
+        jug.getBukkitInstance().sendMessage(ChatColor.YELLOW + "+" + x + " Vip Points");
     }
 
     private void copyDirectory(File sourceLocation, File targetLocation) throws IOException {
@@ -424,7 +423,7 @@ public final class LCCHG extends JavaPlugin {
                 },  200L);
                 for (Player Online : Bukkit.getOnlinePlayers()) {
                     Online.sendMessage(ChatColor.GREEN + ""+ChatColor.BOLD + ChatColor.STRIKETHROUGH + "----------------------------------");
-                    Online.sendMessage(ChatColor.GOLD + ""+ChatColor.BOLD + "                      HG");
+                    Online.sendMessage(ChatColor.GOLD + ""+ChatColor.BOLD + "                      CHG");
                     Online.sendMessage("");
                     Online.sendMessage(ChatColor.YELLOW + "                   Ganador: " + ChatColor.GRAY + jug.getBukkitInstance().getName());
                     Online.sendMessage("");
@@ -549,78 +548,50 @@ public final class LCCHG extends JavaPlugin {
         p.getInventory().clear();
     }
 
-    public static String getRankHGPrefix(String rank) {
+    public static String getRankHGPrefix(CHGRank rank) {
         String c = "";
         String str1;
-        switch ((str1 = rank).hashCode()) {
-            case -1989993123:
-                if (!str1.equals("Mitico"))
-                    break;
+        switch (rank) {
+            case MÍTICO:
                 c = "&d";
                 break;
-            case -728166682:
-                if (!str1.equals("Ilustre"))
-                    break;
+            case ILUSTRE:
                 c = "&1";
                 break;
-            case -208615670:
-                if (!str1.equals("Conquistador"))
-                    break;
+            case CONQUISTADOR:
                 c = "&3";
                 break;
-            case 82054:
-                if (!str1.equals("Rey"))
-                    break;
+            case REY:
                 c = "&c";
                 break;
-            case 67768478:
-                if (!str1.equals("Feroz"))
-                    break;
+            case FEROZ:
                 c = "&e";
                 break;
-            case 69615499:
-                if (!str1.equals("Heroe"))
-                    break;
+            case HÉROE:
                 c = "&b";
                 break;
-            case 74530587:
-                if (!str1.equals("Moral"))
-                    break;
+            case MORTAL:
                 c = "&f";
                 break;
-            case 75621015:
-                if (!str1.equals("Nuevo"))
-                    break;
+            case NUEVO:
                 c = "&7";
                 break;
-            case 148471323:
-                if (!str1.equals("Emperador"))
-                    break;
+            case EMPERADOR:
                 c = "&4";
                 break;
-            case 280331875:
-                if (!str1.equals("Renombrado"))
-                    break;
+            case RENOMBRADO:
                 c = "&9";
                 break;
-            case 379264057:
-                if (!str1.equals("Poderoso"))
-                    break;
+            case PODEROSO:
                 c = "&6";
                 break;
-            case 1059248711:
-                if (!str1.equals("Eminente"))
-                    break;
+            case EMINENTE:
                 c = "&2";
                 break;
-            case 1295094569:
-                if (!str1.equals("Aprendiz"))
-                    break;
+            case APRENDIZ:
                 c = "&a";
                 break;
-            case 1889526468:
-                if (!str1.equals("Legendario"))
-                    break;
+            case LEGENDARIO:
                 c = "&5";
                 break;
         }

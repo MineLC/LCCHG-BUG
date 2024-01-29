@@ -4,6 +4,7 @@ import lc.chg.LCCHG;
 import lc.chg.configuration.Translation;
 import lc.chg.game.BGFBattle;
 import lc.chg.game.GameState;
+import lc.chg.game.timers.EndGameTimer;
 import lc.chg.game.utils.BGChat;
 import lc.core.entidades.Jugador;
 import org.bukkit.ChatColor;
@@ -31,24 +32,19 @@ public class BGConsole implements CommandExecutor {
             }
             return true;
         }
-        if (cmd.getName().equalsIgnoreCase("settimeout")) {
-            int time = Integer.parseInt(args[0]);
-            LCCHG.COUNTDOWN = Integer.valueOf(time * 20);
-            msg(null, sender, ChatColor.YELLOW + "Tiempo actualizado a " + time + "segundos");
-            return true;
-        }
         if (cmd.getName().equalsIgnoreCase("fbattle")) {
             if (p.hasPermission("chg.forcefinalbattle")) {
                 if (LCCHG.GAMESTATE == GameState.GAME) {
                     if (LCCHG.END_GAME.booleanValue()) {
                         LCCHG.END_GAME = Boolean.valueOf(false);
                         BGFBattle.createBattle();
+                        new EndGameTimer();
                         return true;
                     }
-                    BGChat.printPlayerChat(p, ChatColor.RED + "No tienes permiso!");
+                    BGChat.printPlayerChat(p, ChatColor.RED + "No tienes acceso a este comando.");
                     return true;
                 }
-                BGChat.printPlayerChat(p, "El juego no ha comenzado!");
+                BGChat.printPlayerChat(p, "&c¡El juego no ha comenzado!");
                 return true;
             }
             BGChat.printPlayerChat(p, ChatColor.RED + Translation.NO_PERMISSION.t());

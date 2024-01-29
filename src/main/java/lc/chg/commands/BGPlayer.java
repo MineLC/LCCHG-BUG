@@ -33,9 +33,9 @@ public class BGPlayer implements CommandExecutor {
             if (!LCCHG.Fame.containsKey(p))
                 LCCHG.Fame.put(p, Integer.valueOf(0));
             int kills = jug.getChgInfo().getFama();
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6============================"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Rango: &a" + rango));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6Fama: &a" + kills));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&m--------------------------"));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&fRango: &a" + rango));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&fFama: &a" + kills));
             int faltante = 0;
             if (rango == CHGRank.NUEVO) {
                 faltante = 100 - kills;
@@ -67,24 +67,24 @@ public class BGPlayer implements CommandExecutor {
                 faltante = 20000 - kills;
             }
             if (rango != CHGRank.MÍTICO) {
-                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6RankUP: &a" + faltante + " Fame"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&fRankUP: &a" + faltante + " de Fama"));
             } else {
-                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6RankUP: &aRango Máximo"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&fRankUP: &eRango Máximo"));
             }
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6============================"));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6&m--------------------------"));
             return true;
         }
         if (cmd.getName().equalsIgnoreCase("gamemaker")) {
             if (p.hasPermission("chg.gamemaker")) {
                 if (LCCHG.isSpectator(p).booleanValue()) {
                     LCCHG.remSpectator(p);
-                    BGChat.printPlayerChat(p, ChatColor.RED + "Ya no eres Espectador!");
+                    BGChat.printPlayerChat(p, ChatColor.GREEN + "¡Ya no eres Espectador!");
                     p.setGameMode(GameMode.CREATIVE);
                     return true;
                 }
                 LCCHG.addSpectator(p);
                 p.setGameMode(GameMode.SPECTATOR);
-                BGChat.printPlayerChat(p, ChatColor.RED + "Ahora eres Espectador!");
+                BGChat.printPlayerChat(p, ChatColor.RED + "&c¡Ahora eres Espectador!");
                 return true;
             }
             BGChat.printPlayerChat(p, ChatColor.RED + Translation.NO_PERMISSION.t());
@@ -100,14 +100,14 @@ public class BGPlayer implements CommandExecutor {
                     p.setGameMode(GameMode.CREATIVE);
                     for (Player Online : Bukkit.getOnlinePlayers())
                         Online.hidePlayer(p);
-                    BGChat.printPlayerChat(p, ChatColor.RED + "Ahora eres invisible!");
+                    BGChat.printPlayerChat(p, ChatColor.GREEN + "¡Ahora eres invisible!");
                 } else {
                     p.setGameMode(GameMode.SURVIVAL);
                     p.setAllowFlight(true);
                     p.setFlying(true);
                     for (Player Online : Bukkit.getOnlinePlayers())
                         Online.showPlayer(p);
-                    BGChat.printPlayerChat(p, ChatColor.GREEN + "Ahora eres visible!");
+                    BGChat.printPlayerChat(p, ChatColor.GREEN + "¡Ahora eres visible!");
                 }
                 return true;
             }
@@ -147,64 +147,8 @@ public class BGPlayer implements CommandExecutor {
                 return true;
             }
             p.teleport(p);
-            BGChat.printPlayerChat(p, ChatColor.GOLD + "Desbugeado!");
+            BGChat.printPlayerChat(p, ChatColor.GOLD + "¡Desbugeado!");
             return true;
-        }
-        if (cmd.getName().equalsIgnoreCase("settimeout") &&
-                sender.hasPermission("minelc.settimeout")) {
-            int time = Integer.parseInt(args[0]);
-            LCCHG.COUNTDOWN = Integer.valueOf(time * 20);
-            BGChat.printPlayerChat(p, ChatColor.YELLOW + "Tiempo actualizado a " + time + "segundos");
-            return true;
-        }
-        if (cmd.getName().equalsIgnoreCase("team")) {
-            if (args.length > 2)
-                return false;
-            if (args.length == 0) {
-                BGChat.printPlayerChat(p, ChatColor.YELLOW + Translation.TEAM_FUNC_CMDS.t());
-                return true;
-            }
-            if (args[0].equalsIgnoreCase("add")) {
-                if (args.length < 2)
-                    return false;
-                if (Bukkit.getServer().getPlayer(args[1]) == null) {
-                    BGChat.printPlayerChat(p, ChatColor.RED + Translation.PLAYER_NOT_ONLINE.t());
-                    return true;
-                }
-                Player player = Bukkit.getServer().getPlayer(args[1]);
-                if (BGTeam.isInTeam(p, player.getName())) {
-                    BGChat.printPlayerChat(p, ChatColor.RED + Translation.TEAM_FUNC_PLAYER_ALREADY_TEAM.t());
-                    return true;
-                }
-                BGTeam.addMember(p, player.getName());
-                BGChat.printPlayerChat(p, ChatColor.GREEN + Translation.TEAM_FUNC_ADDED_PLAYER.t());
-                return true;
-            }
-            if (args[0].equalsIgnoreCase("remove")) {
-                if (args.length < 2)
-                    return false;
-                if (!BGTeam.isInTeam(p, args[1])) {
-                    BGChat.printPlayerChat(p, ChatColor.RED + Translation.TEAM_FUNC_PLAYER_ALREADY_TEAM.t());
-                    return true;
-                }
-                BGTeam.removeMember(p, args[1]);
-                BGChat.printPlayerChat(p, ChatColor.GREEN + Translation.TEAM_FUNC_REMOVED_PLAYER.t());
-                return true;
-            }
-            if (args[0].equalsIgnoreCase("list")) {
-                if (args.length < 1 || args.length > 1)
-                    return false;
-                String text = ChatColor.YELLOW + Translation.TEAM_FUNC_YOUR_TEAM.t();
-                if (BGTeam.getTeamList(p).size() == 0) {
-                    text = String.valueOf(text) + " Nobody";
-                    BGChat.printPlayerChat(p, text);
-                    return true;
-                }
-                for (String t : BGTeam.getTeamList(p))
-                    text = String.valueOf(text) + " " + t;
-                BGChat.printPlayerChat(p, text);
-                return true;
-            }
         }
         if (cmd.getName().equalsIgnoreCase("hack"))
             if (LCCHG.isSpectator(p).booleanValue()) {
@@ -225,14 +169,12 @@ public class BGPlayer implements CommandExecutor {
                             }
                         },  4L);
                     } else {
-                        Bukkit.getScheduler().runTaskLater((Plugin)LCCHG.instance, new Runnable() {
-                            public void run() {
-                                p.setGameMode(GameMode.SPECTATOR);
-                                p.setAllowFlight(true);
-                                p.setFlying(true);
-                                p.setFlySpeed(0.2F);
-                                p.sendMessage(ChatColor.YELLOW + "Ahora vuelves a ser invisible.");
-                            }
+                        Bukkit.getScheduler().runTaskLater((Plugin)LCCHG.instance, () -> {
+                            p.setGameMode(GameMode.SPECTATOR);
+                            p.setAllowFlight(true);
+                            p.setFlying(true);
+                            p.setFlySpeed(0.2F);
+                            p.sendMessage(ChatColor.YELLOW + "Ahora vuelves a ser invisible.");
                         },  2L);
                     }
                 } catch (Exception ex) {
@@ -240,7 +182,7 @@ public class BGPlayer implements CommandExecutor {
                     ex.printStackTrace();
                 }
             } else {
-                p.sendMessage(ChatColor.RED + "Comando solo para espectadores");
+                p.sendMessage(ChatColor.RED + "Comando solo para espectadores.");
             }
         if (cmd.getName().equalsIgnoreCase("teleport"))
             if (LCCHG.isSpectator(p).booleanValue()) {
@@ -260,21 +202,19 @@ public class BGPlayer implements CommandExecutor {
                     p.teleport((Entity)target);
                     return true;
                 }
-                if (args.length == 2) {
-                    int x = 0;
-                    int z = 0;
-                    try {
-                        x = Integer.parseInt(args[0]);
-                        z = Integer.parseInt(args[1]);
-                    } catch (NumberFormatException e) {
-                        BGChat.printPlayerChat(p, ChatColor.RED + Translation.TELEPORT_FUNC_COORDS_NOT_VALID.t());
-                        return true;
-                    }
-                    Location loc = new Location(Bukkit.getServer().getWorlds().get(0), x, ((World)Bukkit.getServer().getWorlds().get(0)).getHighestBlockYAt(x, z) + 1.5D, z);
-                    BGChat.printPlayerChat(p, ChatColor.GREEN + Translation.TELEPORT_FUNC_TELEPORTED_COORDS.t().replace("<x>", (new StringBuilder(String.valueOf(x))).toString()).replace("<z>", (new StringBuilder(String.valueOf(z))).toString()));
-                    p.teleport(loc);
+                int x = 0;
+                int z = 0;
+                try {
+                    x = Integer.parseInt(args[0]);
+                    z = Integer.parseInt(args[1]);
+                } catch (NumberFormatException e) {
+                    BGChat.printPlayerChat(p, ChatColor.RED + Translation.TELEPORT_FUNC_COORDS_NOT_VALID.t());
                     return true;
                 }
+                Location loc = new Location(Bukkit.getServer().getWorlds().get(0), x, ((World)Bukkit.getServer().getWorlds().get(0)).getHighestBlockYAt(x, z) + 1.5D, z);
+                BGChat.printPlayerChat(p, ChatColor.GREEN + Translation.TELEPORT_FUNC_TELEPORTED_COORDS.t().replace("<x>", (new StringBuilder(String.valueOf(x))).toString()).replace("<z>", (new StringBuilder(String.valueOf(z))).toString()));
+                p.teleport(loc);
+                return true;
             } else {
                 BGChat.printPlayerChat(p, ChatColor.RED + Translation.NO_PERMISSION.t());
                 return true;

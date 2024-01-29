@@ -450,6 +450,13 @@ public class BGKit {
         if (LCCHG.isSpectator(player))
             return false;
         Jugador jug = Jugador.getJugador(player);
+        if(jug.getChgInfo() == null)
+            CHGInfoQuery.load_PlayerCHGInfo(jug);
+        if(jug.getChgInfo()
+                .getKit() == null || jug.getChgInfo()
+                .getKit().isEmpty()){
+            jug.getChgInfo().setKit("default");
+        }
         if (!kits.contains(jug.getChgInfo().getKit().toLowerCase())) {
             if (LCCHG.DEFAULT_KIT) {
                 ConfigurationSection def = LCConfig.kitconf.getConfigurationSection("default");

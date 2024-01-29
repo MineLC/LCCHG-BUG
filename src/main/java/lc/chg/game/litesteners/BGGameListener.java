@@ -203,6 +203,9 @@ public class BGGameListener implements Listener {
                         case 23:
                             BGGameListener.getInvStats_CHG_partidas_jugadas().open(e.getPlayer());
                             break;
+                        case 25:
+                            BGGameListener.getInvStats_CHG_deaths().open(e.getPlayer());
+                            break;
                     }
                 }
             },  (Plugin)LCCHG.instance);
@@ -212,6 +215,26 @@ public class BGGameListener implements Listener {
             invStats_CHG.setOption(25, new ItemStack(Material.SIGN), ChatColor.GREEN + ""+ChatColor.BOLD + "Muertes  ", new String[] { ChatColor.GRAY + "Click para mostrar a los usuarios con", ChatColor.GRAY + "mas muertes" });
         }
         return invStats_CHG;
+    }
+
+
+    private static IconMenu getInvStats_CHG_deaths() {
+        if (invStats_CHG_deaths == null) {
+            invStats_CHG_deaths = new IconMenu("TOP Muertes - CHG", 45, new IconMenu.OptionClickEventHandler() {
+                public void onOptionClick(IconMenu.OptionClickEvent e) {
+                    e.setWillClose(false);
+                    e.setWillDestroy(false);
+                    if (e.getPosition() == 31)
+                        BGGameListener.getInvStats_CHG().open(e.getPlayer());
+                }
+            },  (Plugin)LCCHG.instance);
+            LinkedHashMap<String, Integer> top = Database.getTop(18, "muertes", "CHGInfo");
+            int slot = 0;
+            for (Map.Entry<String, Integer> es : top.entrySet())
+                invStats_CHG_deaths.setOption(slot++, (ItemStack)new ItemUtils(es.getKey(), Integer.valueOf(1), ChatColor.GOLD + ""+ChatColor.BOLD + "#" + slot + ChatColor.DARK_GRAY + " - " + ChatColor.RED + (String)es.getKey(), ChatColor.GRAY +""+ es.getValue() + " muertes"));
+            invStats_CHG_deaths.setOption(31, new ItemStack(Material.MAP), ChatColor.GRAY + ""+ChatColor.BOLD + "Regresar", new String[0]);
+        }
+        return invStats_CHG_deaths;
     }
 
     private static IconMenu getInv_VipPoints(Player p) {
@@ -250,7 +273,6 @@ public class BGGameListener implements Listener {
     }
 
     private static IconMenu getInv_Stats(Player p) {
-        p.sendMessage(ChatColor.YELLOW+"Cargando estadísticas...");
         Jugador j = Jugador.getJugador(p);
         VipPointsQuery.load_PlayerVipPoints(j);
         CHGInfoQuery.load_PlayerCHGInfo(j);
@@ -261,7 +283,7 @@ public class BGGameListener implements Listener {
                 e.setWillDestroy(false);
             }, (Plugin) LCCHG.instance);
             invStats.setOption(10, new ItemStack(Material.DIAMOND_SWORD), ChatColor.GOLD + "" + ChatColor.BOLD + "Asesinatos", ChatColor.GRAY + "" + Jugador.getJugador(p).getChgInfo().getKills());
-            invStats.setOption(12, new ItemStack(Material.SKULL_ITEM), ChatColor.GOLD + "" + ChatColor.BOLD + "Muertes", new String[]{ChatColor.GRAY + "" + (Jugador.getJugador(p).getChgInfo().getPlayeds() - Jugador.getJugador(p).getChgInfo().getWins())});
+            invStats.setOption(12, new ItemStack(Material.SKULL_ITEM), ChatColor.GOLD + "" + ChatColor.BOLD + "Muertes", new String[]{ChatColor.GRAY + "" + Jugador.getJugador(p).getChgInfo().getMuertes()});
             invStats.setOption(14, new ItemStack(Material.DIAMOND_AXE), ChatColor.GOLD + "" + ChatColor.BOLD + "KDR", new String[]{ChatColor.GRAY + "" + LCPAPI.kdr(Jugador.getJugador(p).getChgInfo().getKills(), Jugador.getJugador(p).getChgInfo().getPlayeds() - Jugador.getJugador(p).getChgInfo().getWins())});
             invStats.setOption(16, new ItemStack(Material.GOLDEN_APPLE, 1, (short) 1), ChatColor.GOLD + "" + ChatColor.BOLD + "Victorias", new String[]{ChatColor.GRAY + "" + Jugador.getJugador(p).getChgInfo().getWins()});
             invStats.setOption(28, new ItemStack(Material.PAPER), ChatColor.GOLD + "" + ChatColor.BOLD + "Jugadas", new String[]{ChatColor.GRAY + "" + Jugador.getJugador(p).getChgInfo().getPlayeds()});
@@ -290,7 +312,6 @@ public void onPlayerInteract(PlayerInteractEvent event) {
             BGChat.printKitChat(p);
         } else if (p.getItemInHand().getType() == Material.PAPER) {
             getInvStats_CHG().open(p);
-
         }else if (p.getItemInHand().getType() == Material.GOLD_INGOT) {
             getInv_VipPoints(p).open(p);
         } else if (p.getItemInHand().getType() == Material.SKULL_ITEM) {
@@ -320,10 +341,10 @@ public void onPlayerInteract(PlayerInteractEvent event) {
         }
         if (cplayer != null) {
             DecimalFormat df = new DecimalFormat("##.#");
-            p.sendMessage(ChatColor.GOLD + "La brapunta al jugador " + ChatColor.YELLOW + cplayer.getName() + ChatColor.GREEN + " (" + df.format(cdistance) + " bloques)!");
+            p.sendMessage(Translation.getPrefix()+ChatColor.YELLOW + "La brújula apunta al jugador " + ChatColor.GOLD + cplayer.getName() + ChatColor.GRAY + " (" + ChatColor.AQUA+df.format(cdistance) + " bloques"+ ChatColor.GRAY+")");
             p.setCompassTarget(cplayer.getLocation());
         } else {
-            p.sendMessage(ChatColor.GRAY + "La brapunta al spawn!");
+            p.sendMessage(Translation.getPrefix()+ChatColor.GOLD + "¡La brújula apunta al Spawn!");
             p.setCompassTarget(LCCHG.getSpawn());
         }
     }
@@ -390,11 +411,9 @@ public void onLogin(AsyncPlayerPreLoginEvent e) {
     Player p = jug.getBukkitInstance();
     try {
         CHGInfoQuery.load_PlayerCHGInfo_ASYNC(jug);
-        LCoinsQuery.load_PlayerCoins_ASYNC(jug);
-        VipPointsQuery.load_PlayerVipPoints_ASYNC(jug);
     } catch (Exception a) {
         a.printStackTrace();
-        p.kickPlayer("&cError al cargar tus datos Ingresa Nuevamente!");
+        p.kickPlayer("&c¡Error al cargar tus datos Ingresa Nuevamente!");
     }
 }
 
@@ -405,9 +424,9 @@ public void onLogin(PlayerLoginEvent e) {
         if (LCCHG.GAMESTATE == GameState.PREGAME) {
             if (e.getPlayer().hasPermission("chg.bypassfull"))
                 e.allow();
-            e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.RED + "El juego esta lleno!");
+            e.disallow(PlayerLoginEvent.Result.KICK_OTHER, ChatColor.RED + "¡El juego esta lleno!");
         } else {
-            e.disallow(PlayerLoginEvent.Result.KICK_FULL, ChatColor.RED + "El juego esta en progreso!");
+            e.disallow(PlayerLoginEvent.Result.KICK_FULL, ChatColor.RED + "¡El juego esta en progreso!");
         }
 }
 
@@ -446,7 +465,7 @@ public void onPlayerJoin(PlayerJoinEvent event) {
     }
     String command = "minecraft:gamerule sendCommandFeedback false";
     Bukkit.getServer().dispatchCommand((CommandSender)Bukkit.getConsoleSender(), command);
-    Util.sendTitle(p, 0, 60, 0, "&6&lCHG", "&awww.mine.lc");
+    Util.sendTitle(p, 0, 60, 0, "&6&lCHG", "&aplay.mine.lc");
 }
 
 @EventHandler(priority = EventPriority.HIGHEST)
@@ -487,8 +506,8 @@ public void onPlayerQuit(PlayerQuitEvent event) {
             if (killer != null) {
                 killer.getChgInfo().setKills(killer.getChgInfo().getKills()+1);
                 LCCHG.kills.put(killer.getBukkitInstance().getName(), Integer.valueOf(((Integer)LCCHG.kills.get(killer.getBukkitInstance().getName())).intValue() + 1));
-                sendGameMessage(ChatColor.GRAY + jug.getBukkitInstance().getName() + ChatColor.YELLOW + " se desconecto pero fue asesinado por " +
-                        ChatColor.GRAY + killer.getBukkitInstance().getName() + ChatColor.YELLOW + "!");
+                sendGameMessage(ChatColor.DARK_RED + jug.getBukkitInstance().getName() + ChatColor.RED + " se desconecto huyendo de " +
+                        ChatColor.GREEN + killer.getBukkitInstance().getName());
 
                 CHGInfoQuery.saveCHGInfo(killer);
                 Location loc = p.getLocation();
@@ -517,7 +536,7 @@ public void onPlayerQuit(PlayerQuitEvent event) {
                 }
             }
         } else {
-            sendGameMessage(ChatColor.GRAY + jug.getBukkitInstance().getName() + ChatColor.YELLOW + " ha muerto.");
+            sendGameMessage(ChatColor.DARK_RED + jug.getBukkitInstance().getName() + ChatColor.RED + " se desconectó.");
         }
         LCCHG.checkwinner();
     }
@@ -623,7 +642,7 @@ public void onPlayerRespawn(PlayerRespawnEvent e) {
     Player p = e.getPlayer();
     e.setRespawnLocation(p.getLocation());
     LCCHG.addSpectator(p);
-    p.sendMessage(ChatColor.AQUA + "Ahora eres espectador. Para salir usa el comando /lobby!");
+    p.sendMessage(ChatColor.AQUA + "¡Ahora eres espectador! "+ChatColor.YELLOW +"Para salir usa el comando /lobby!");
 }
 
 @EventHandler(priority = EventPriority.HIGH)
@@ -652,71 +671,71 @@ public void onDeath(PlayerDeathEvent e) {
             if (kills >= 300 && kills < 500) {
                 if (rank != CHGRank.APRENDIZ) {
                     killer.getChgInfo().setRank(CHGRank.APRENDIZ);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&aFelicidades, ahora eres &2Aprendiz!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a¡aFelicidades! Ahora eres &2Aprendiz&a."));
                 }
             } else if (kills >= 500 && kills < 1000) {
                 if (rank != CHGRank.HÉROE) {
                     killer.getChgInfo().setRank(CHGRank.HÉROE);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&aFelicidades, ahora eres &2Heroe!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a¡Felicidades! Ahora eres &2Heroe&a."));
                 }
             } else if (kills >= 1000 && kills < 2000) {
                 if (rank != CHGRank.FEROZ) {
                     killer.getChgInfo().setRank(CHGRank.FEROZ);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&aFelicidades, ahora eres &2Feroz!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a¡Felicidades! Ahora eres &2Feroz&a."));
                 }
             } else if (kills >= 2000 && kills < 3000) {
                 if (rank != CHGRank.PODEROSO) {
                     killer.getChgInfo().setRank(CHGRank.PODEROSO);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&aFelicidades, ahora eres &2Poderoso!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a¡Felicidades! Ahora eres &2Poderoso&a."));
                 }
             } else if (kills >= 3000 && kills < 4000) {
                 if (rank != CHGRank.MORTAL) {
                     killer.getChgInfo().setRank(CHGRank.MORTAL);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&aFelicidades, ahora eres &2Mortal!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a¡Felicidades! Ahora eres &2Mortal&a."));
                 }
             } else if (kills >= 4000 && kills < 5000) {
                 if (rank != CHGRank.TERRORÍFICO) {
                     killer.getChgInfo().setRank(CHGRank.TERRORÍFICO);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Terrorífico!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Terrorífico&a."));
                 }
             } else if (kills >= 5000 && kills < 6000) {
                 if (rank != CHGRank.CONQUISTADOR) {
                     killer.getChgInfo().setRank(CHGRank.CONQUISTADOR);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Conquistador!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Conquistador&a."));
                 }
             } else if (kills >= 6000 && kills < 7000) {
                 if (rank != CHGRank.RENOMBRADO) {
                     killer.getChgInfo().setRank(CHGRank.RENOMBRADO);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2 Renombrado!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2 Renombrado&a."));
                 }
             } else if (kills >= 7000 && kills < 8000) {
                 if (rank != CHGRank.ILUSTRE) {
                     killer.getChgInfo().setRank(CHGRank.ILUSTRE);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Ilustre!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Ilustre&a."));
                 }
             } else if (kills >= 8000 && kills < 9000) {
                 if (rank != CHGRank.EMINENTE) {
                     killer.getChgInfo().setRank(CHGRank.EMINENTE);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Eminente!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Eminente&a."));
                 }
             } else if (kills >= 9000 && kills < 10000) {
                 if (rank != CHGRank.REY) {
                     killer.getChgInfo().setRank(CHGRank.REY);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Rey!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Rey&a."));
                 }
             } else if (kills >= 10000 && kills < 15000) {
                 if (rank != CHGRank.EMPERADOR) {
                     killer.getChgInfo().setRank(CHGRank.EMPERADOR);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Emperador!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Emperador&a."));
                 }
             } else if (kills >= 15000 && kills < 20000) {
                 if (rank != CHGRank.LEGENDARIO) {
                     killer.getChgInfo().setRank(CHGRank.LEGENDARIO);
-                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Legendario!!"));
+                    killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Legendario&a."));
                 }
             } else if (kills >= 20000 && rank != CHGRank.MÍTICO) {
                 killer.getChgInfo().setRank(CHGRank.MÍTICO);
-                killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&aFelicidades, ahora eres &2Mítico!!"));
+                killer.getBukkitInstance().sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&a¡Felicidades! Ahora eres &2Mítico&a."));
             }
             LCCHG.kills.put(killer.getBukkitInstance().getName(), Integer.valueOf(((Integer) LCCHG.kills.get(killer.getBukkitInstance().getName())).intValue() + 1));
 
@@ -726,11 +745,12 @@ public void onDeath(PlayerDeathEvent e) {
             if(killer.isELITE()) i = 4;
             if(killer.isRUBY()) i = 5;
 
-            LCCHG.addBalance(target, i);
+            LCCHG.addBalance(killer, i);
             CHGInfoQuery.saveCHGInfo(killer);
         }
 
     }
+    target.getChgInfo().setMuertes(target.getChgInfo().getMuertes()+1);
     target.getChgInfo().setPlayeds(target.getChgInfo().getPlayeds()+1);
     CHGInfoQuery.saveCHGInfo(target);
     Bukkit.getScheduler().runTaskLater((Plugin)LCCHG.instance, () -> {

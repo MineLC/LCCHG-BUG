@@ -1,5 +1,6 @@
 package lc.chg.configuration;
 
+import lc.core.utilidades.Util;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public enum Translation {
@@ -17,8 +18,11 @@ public enum Translation {
         this.path = toString();
     }
 
+    public static String getPrefix(){
+        return Util.color(e.getString("prefix"));
+    }
     public String t() {
-        return e.getString(this.path);
+        return Util.color(e.getString("prefix")+e.getString(this.path));
     }
 
     public String p() {

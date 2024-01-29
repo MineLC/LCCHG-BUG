@@ -92,7 +92,7 @@ public class BGCooldown {
         TimerTask action = new TimerTask() {
             public void run() {
                 BGHabilidadesListener.cooldown.remove(player);
-                player.sendMessage(ChatColor.GREEN + "Ahora puedes volver a teletransportarte!");
+                player.sendMessage(ChatColor.GREEN + "¡Ahora puedes volver a teletransportarte!");
             }
         };
         Timer timer = new Timer();
